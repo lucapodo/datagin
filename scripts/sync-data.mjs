@@ -9,14 +9,14 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SOURCE = resolve(__dirname, '../../data/gins.json');
+const SOURCE = resolve(__dirname, '../data/gins.json');
 const DEST_DIR = resolve(__dirname, '../public/data');
 const DEST = resolve(DEST_DIR, 'gins.json');
 
 if (!existsSync(SOURCE)) {
   console.error(
     `[sync-data] File sorgente non trovato: ${SOURCE}\n` +
-      '[sync-data] Assicurati che ../data/gins.json esista rispetto a frontend/.'
+      '[sync-data] Assicurati che data/gins.json esista nella root della repo.'
   );
   process.exit(1);
 }

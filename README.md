@@ -24,8 +24,12 @@ npm run preview   # per verificare localmente la build generata in dist/
 
 ```
 frontend/
+├── data/
+│   ├── gins.json          # fonte di verità dei contenuti (versionata)
+│   ├── SCHEMA.md
+│   └── SOURCES.md
 ├── scripts/
-│   └── sync-data.mjs      # copia ../data/gins.json -> public/data/gins.json
+│   └── sync-data.mjs      # copia data/gins.json -> public/data/gins.json
 ├── public/
 │   ├── favicon.svg
 │   └── data/
@@ -53,14 +57,14 @@ frontend/
 └── README.md
 ```
 
-## Sincronizzazione dati (`../data/gins.json`)
+## Sincronizzazione dati (`data/gins.json`)
 
-`data/gins.json` (nella cartella `Gin/`, un livello sopra `frontend/`) è la
+`data/gins.json` (nella root della repo) è la
 **fonte di verità unica** dei contenuti, gestita da un altro team in
 parallelo a questo lavoro. Per non dover mai copiare/incollare quel file a
 mano:
 
-1. `scripts/sync-data.mjs` copia `../data/gins.json` dentro
+1. `scripts/sync-data.mjs` copia `data/gins.json` dentro
    `public/data/gins.json`, con una validazione minima (deve essere un array
    JSON valido).
 2. Questo script gira automaticamente come hook npm **`predev`** e
@@ -171,7 +175,7 @@ mentre una scheda è aperta; riparte dopo ~4 s di inattività. Il pixel ratio
 - `npm run dev` — il server si avvia, tutti i moduli sorgente vengono
   transpilati correttamente da Vite (verificato via richieste dirette ai
   singoli file) e `GET /data/gins.json` restituisce i 5 gin segnaposto
-  correttamente sincronizzati da `../data/gins.json`.
+  correttamente sincronizzati da `data/gins.json`.
 - Verifica manuale della logica: aggregazione nazione+regione, ricerca
   (nome/nazione/regione/botaniche), apertura scheda su singolo gin vs. elenco
   multiplo, e formato di tutti i campi nella scheda di dettaglio.
@@ -210,8 +214,8 @@ Variabili d'ambiente da impostare su Vercel (Settings → Environment Variables)
 | `CONTACT_TO_EMAIL` | Indirizzo che riceve segnalazioni e proposte |
 | `CONTACT_FROM_EMAIL` | Mittente su un dominio verificato in Resend, es. `L'Atlante del Gin <segnalazioni@tuodominio.it>`. Senza, usa `onboarding@resend.dev`, che consegna solo all'email dell'account Resend |
 
-Su Vercel il progetto va configurato con **Root Directory = `frontend`**
-(lasciando attiva l'opzione che include i file fuori dalla root, necessaria
-per leggere `../data/gins.json` in build). `vercel.json` rimanda tutte le
+Su Vercel il progetto si configura con la root della repo come Root Directory:
+`data/gins.json` è versionato insieme al codice, quindi il build lo trova
+senza opzioni particolari. `vercel.json` rimanda tutte le
 route del sito a `index.html`. In locale `npm run dev` non esegue le funzioni:
 per provare l'invio usare `vercel dev`.

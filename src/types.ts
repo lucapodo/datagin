@@ -1,4 +1,4 @@
-// Forma dei dati come definita in ../../data/SCHEMA.md — fonte di verità unica.
+// Forma dei dati come definita in data/SCHEMA.md — fonte di verità unica.
 export interface Gin {
   id: string;
   name: string;
