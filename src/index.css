@@ -1,0 +1,1566 @@
+:root {
+  --paper: #fbf7ec;
+  --parchment: #f1e8cc;
+  --parchment-dark: #e2d6a8;
+  --ink: #1b2b22;
+  --ink-soft: #3b4a3d;
+  --accent: #8c3a2b;
+  --line: rgba(27, 43, 34, 0.35);
+
+  --panel-width: 440px;
+  --searchbar-height: 58px;
+
+  /* Trama di fondo, appena percettibile: rametto di ginepro, scorza
+     d'agrume, semi di coriandolo e spiga — gli stessi elementi disegnati a
+     tratto sottile usati altrove nel sito (icone, illustrazione bottiglia),
+     qui ripetuti a bassissima opacità come sfondo. */
+  --botanical-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%231b2b22' stroke-width='1.1'%3E%3Cg transform='translate(34,46) rotate(-14)' stroke-opacity='0.06'%3E%3Cpath d='M0,34 C4,20 4,10 0,0'/%3E%3Cpath d='M0,9 C-7,4 -11,7 -13,13'/%3E%3Cpath d='M0,22 C7,17 11,20 13,26'/%3E%3Ccircle cx='-4' cy='7' r='2.4' fill='%231b2b22' fill-opacity='0.055' stroke='none'/%3E%3Ccircle cx='5' cy='16' r='2.4' fill='%231b2b22' fill-opacity='0.055' stroke='none'/%3E%3Ccircle cx='-3' cy='26' r='2.4' fill='%231b2b22' fill-opacity='0.055' stroke='none'/%3E%3C/g%3E%3Cg transform='translate(178,40) rotate(18)' stroke-opacity='0.055'%3E%3Cpath d='M0,0 C15,1 20,15 9,20 C0,24 -7,15 0,11 C4,8 9,10 8,14'/%3E%3C/g%3E%3Cg transform='translate(64,150) rotate(10)' stroke-opacity='0.055'%3E%3Cellipse cx='0' cy='0' rx='4.5' ry='6.5'/%3E%3Cellipse cx='11' cy='5' rx='4.5' ry='6.5'/%3E%3Cellipse cx='-9' cy='7' rx='4.5' ry='6.5'/%3E%3Cellipse cx='2' cy='13' rx='4.5' ry='6.5'/%3E%3C/g%3E%3Cg transform='translate(190,168) rotate(-8)' stroke-opacity='0.055'%3E%3Cpath d='M0,0 L0,46'/%3E%3Cpath d='M0,4 L9,-1 M0,4 L-9,-1 M0,13 L9,8 M0,13 L-9,8 M0,22 L9,17 M0,22 L-9,17 M0,31 L9,26 M0,31 L-9,26'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--ink);
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+.display {
+  font-family: 'Bodoni Moda', 'Didot', Georgia, serif;
+}
+
+/* -------------------------------------------------------------------- */
+/* App shell                                                             */
+/* -------------------------------------------------------------------- */
+
+.app {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--paper);
+  background-image: var(--botanical-pattern);
+  background-repeat: repeat;
+  background-size: 240px 240px;
+}
+
+/* Wrapper esclusivo della MapPage (globo + ricerca + scheda): è l'unico
+   punto dell'app pensato per restare a schermo fisso, senza scroll — tutti
+   gli elementi position:absolute della mappa (globe-stage, vignette,
+   search-dock, detail-panel, status-message) sono relativi a questo box.
+   Le altre pagine (es. /datagin) sono contenuto normale che scorre con il
+   documento, quindi non usano questa classe. */
+.map-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--paper);
+  background-image: var(--botanical-pattern);
+  background-repeat: repeat;
+  background-size: 240px 240px;
+}
+
+.app-corner {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 5;
+}
+.app-corner--tl {
+  top: 22px;
+  left: 22px;
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+}
+.app-corner--tr {
+  top: 22px;
+  right: 22px;
+  border-top: 1px solid var(--ink);
+  border-right: 1px solid var(--ink);
+}
+.app-corner--bl {
+  bottom: 22px;
+  left: 22px;
+  border-bottom: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+}
+.app-corner--br {
+  bottom: 22px;
+  right: 22px;
+  border-bottom: 1px solid var(--ink);
+  border-right: 1px solid var(--ink);
+}
+
+/* -------------------------------------------------------------------- */
+/* Header                                                                */
+/* -------------------------------------------------------------------- */
+
+.site-header {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+  pointer-events: none;
+}
+
+.site-header__logo {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 7px;
+  color: var(--ink);
+  /* L'header lascia passare i click al globo; il logo no: riporta alla home. */
+  pointer-events: auto;
+}
+.site-header__logo:hover {
+  color: var(--accent);
+}
+
+.site-header__tagline {
+  font-style: italic;
+  font-size: 12.5px;
+  letter-spacing: 3px;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  text-transform: uppercase;
+}
+
+.site-header__rule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.site-header__rule-line {
+  width: 56px;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Menu con un riquadro opaco proprio, come la barra di ricerca: deve restare
+   leggibile qualunque sia la rotazione/zoom del globo dietro di lui. Di
+   default sta nel flusso, centrato sotto il titolo; solo sugli schermi molto
+   larghi c'è spazio per fissarlo in alto a destra senza coprire il titolo
+   centrato (titolo ~420px + menu ~430px per lato). */
+.site-header__nav {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 12px;
+  max-width: calc(100% - 32px);
+  margin-top: 16px;
+  padding: 9px 16px;
+  border: 1.3px solid var(--ink);
+  background: var(--paper);
+  pointer-events: auto;
+}
+
+@media (min-width: 1400px) {
+  .site-header__nav {
+    position: fixed;
+    top: 34px;
+    right: 38px;
+    margin-top: 0;
+  }
+}
+
+.site-header__nav-link {
+  font-size: 11.5px;
+  font-style: normal;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+}
+.site-header__nav-link:hover {
+  color: var(--ink);
+}
+.site-header__nav-link.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.site-header__nav-sep {
+  color: var(--line);
+  font-size: 11px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Globe stage                                                           */
+/* -------------------------------------------------------------------- */
+
+.globe-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.globe-stage-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.globe-stage.has-panel {
+  transform: translateX(6%);
+}
+
+/* Fasce sfumate in tono carta, sopra il globo ma sotto testo/UI: garantiscono
+   che titolo e barra di ricerca restino sempre leggibili qualunque sia la
+   rotazione/zoom del globo dietro di loro, senza un riquadro rigido. */
+.stage-vignette {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.stage-vignette--top {
+  top: 0;
+  height: 200px;
+  background: linear-gradient(to bottom, var(--paper) 0%, rgba(251, 247, 236, 0.82) 50%, rgba(251, 247, 236, 0) 100%);
+}
+.stage-vignette--bottom {
+  bottom: 0;
+  height: 190px;
+  background: linear-gradient(to top, var(--paper) 0%, rgba(251, 247, 236, 0.82) 50%, rgba(251, 247, 236, 0) 100%);
+}
+
+.globe-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* Il layer CSS2D di three-globe imposta pointer-events:none sul proprio
+     contenitore per lasciar passare il drag al canvas WebGL sottostante:
+     ogni marker deve riabilitarli esplicitamente per ricevere il click. */
+  pointer-events: auto;
+  /* Dissolvenza all'orizzonte (classe .is-behind impostata da
+     htmlElementVisibilityModifier in GlobeView) invece di uno spegnimento
+     secco con display:none, che faceva lampeggiare i marker. */
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.globe-marker.is-behind {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.globe-marker__ring {
+  position: absolute;
+  width: calc(var(--dot-size, 10px) + 16px);
+  height: calc(var(--dot-size, 10px) + 16px);
+  border-radius: 50%;
+  border: 1.4px solid var(--accent);
+  opacity: 0;
+  transform: scale(0.72);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.globe-marker__dot {
+  width: var(--dot-size, 10px);
+  height: var(--dot-size, 10px);
+  border-radius: 50%;
+  background: var(--ink);
+  border: 1.5px solid var(--paper);
+  display: block;
+  box-shadow: 0 0 0 1px rgba(27, 43, 34, 0.25);
+  transition: background 0.15s ease;
+}
+
+.globe-marker:hover .globe-marker__ring,
+.globe-marker.is-active .globe-marker__ring {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.globe-marker.is-active .globe-marker__dot {
+  background: var(--accent);
+}
+
+/* -------------------------------------------------------------------- */
+/* Search bar                                                            */
+/* -------------------------------------------------------------------- */
+
+.search-dock {
+  position: absolute;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(560px, calc(100% - 40px));
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: var(--searchbar-height);
+  padding: 0 24px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+}
+
+.search-bar__icon {
+  flex-shrink: 0;
+  color: var(--ink);
+}
+
+.search-bar__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+}
+.search-bar__input::placeholder {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.search-bar__divider {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+  flex-shrink: 0;
+}
+
+.search-bar__label {
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  color: var(--ink);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.search-suggestions {
+  width: 100%;
+  margin-top: 8px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.search-suggestions__item {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+.search-suggestions__item:last-child {
+  border-bottom: none;
+}
+.search-suggestions__item:hover {
+  background: var(--parchment);
+}
+.search-suggestions__item-name {
+  font-family: 'Bodoni Moda', serif;
+  font-weight: 600;
+}
+.search-suggestions__item-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.search-empty {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px 20px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------------- */
+/* Detail panel                                                          */
+/* -------------------------------------------------------------------- */
+
+.panel-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.detail-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--panel-width);
+  max-width: 100%;
+  height: 100%;
+  z-index: 10;
+  background: var(--paper);
+  border-right: 1.5px solid var(--ink);
+  box-shadow: 10px 0 30px rgba(27, 43, 34, 0.16);
+  padding: 44px 34px 30px;
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-panel.is-open {
+  transform: translateX(0);
+}
+
+.detail-panel__close {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink);
+}
+.detail-panel__close:hover {
+  color: var(--accent);
+}
+
+.panel-eyebrow {
+  font-size: 10.5px;
+  letter-spacing: 2px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.panel-region-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.panel-region-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+.region-list {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+
+.region-list__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+.region-list__item:hover .region-list__name {
+  color: var(--accent);
+}
+.region-list__item:first-child {
+  padding-top: 4px;
+}
+
+.region-list__name {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 18px;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.region-list__type {
+  font-size: 12.5px;
+  letter-spacing: 1px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-soft);
+  padding: 0;
+  margin-bottom: 22px;
+  align-self: flex-start;
+}
+.back-link:hover {
+  color: var(--accent);
+}
+
+.gin-detail__illustration {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.gin-detail__title {
+  font-size: 25px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.gin-detail__badge-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.fact-grid--span {
+  grid-column: span 2;
+}
+
+.fact-label {
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+.fact-value {
+  font-size: 15px;
+  margin-top: 2px;
+}
+
+.section-block {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.botanicals-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.anecdote-text {
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.55;
+  margin-top: 10px;
+  color: var(--ink-soft);
+}
+
+.characteristics-text {
+  font-size: 14.5px;
+  line-height: 1.55;
+  margin-top: 10px;
+  color: var(--ink);
+}
+
+.panel-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.producer-link {
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Empty / status states                                                 */
+/* -------------------------------------------------------------------- */
+
+.status-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 15px;
+  text-align: center;
+  padding: 0 24px;
+}
+
+/* -------------------------------------------------------------------- */
+/* DataGin page                                                          */
+/* -------------------------------------------------------------------- */
+
+.datagin-page {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 20px 32px 80px;
+}
+
+.datagin-page__status {
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 15px;
+  text-align: center;
+  padding: 100px 24px;
+}
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.stat-tile {
+  border: 1.5px solid var(--ink);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.stat-tile__value {
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.stat-tile__label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.stat-tile__sub {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-soft);
+  overflow-wrap: break-word;
+}
+
+.datagin-page__charts {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.datagin-page__section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* -------------------------------------------------------------------- */
+/* DataGin filters row                                                   */
+/* -------------------------------------------------------------------- */
+
+.datagin-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 22px;
+  margin-top: 22px;
+  padding: 20px 24px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+}
+
+.datagin-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 170px;
+}
+.datagin-filters__field--range {
+  min-width: 220px;
+}
+
+.datagin-filters__field label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.datagin-filters__select {
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 14.5px;
+  padding: 8px 10px;
+  outline: none;
+}
+
+.datagin-filters__range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.datagin-filters__range-inputs input[type='number'] {
+  width: 64px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 14.5px;
+  padding: 7px 8px;
+  outline: none;
+}
+
+.datagin-filters__range-sep {
+  color: var(--ink-soft);
+}
+
+.datagin-filters__reset {
+  margin-bottom: 4px;
+  margin-left: auto;
+}
+
+/* -------------------------------------------------------------------- */
+/* DataGin index table                                                   */
+/* -------------------------------------------------------------------- */
+
+.datagin-table-wrap {
+  border: 1.5px solid var(--ink);
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.datagin-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.datagin-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--paper);
+  border-bottom: 1.5px solid var(--ink);
+  text-align: left;
+  padding: 0;
+}
+
+.datagin-table th button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 10px 14px;
+  text-align: left;
+}
+.datagin-table th button:hover {
+  color: var(--ink);
+}
+.datagin-table th.is-sorted button {
+  color: var(--ink);
+}
+
+.datagin-table__sort-icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.datagin-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: baseline;
+}
+.datagin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.datagin-table__name {
+  font-family: 'Bodoni Moda', serif;
+  font-weight: 600;
+}
+
+.datagin-table__num {
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------- */
+/* Ranked bar chart (usato da tutti i grafici di DataGin)                */
+/* -------------------------------------------------------------------- */
+
+.ranked-chart {
+  border: 1.5px solid var(--ink);
+  padding: 26px 28px;
+}
+
+.ranked-chart__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.ranked-chart__empty {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.ranked-chart__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.ranked-chart__row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ranked-chart__row:first-child {
+  padding-top: 0;
+}
+.ranked-chart__row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ranked-chart__row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.ranked-chart__label {
+  font-size: 14.5px;
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.ranked-chart__sublabel {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.ranked-chart__value {
+  font-family: 'Bodoni Moda', serif;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ranked-chart__track {
+  height: 9px;
+  width: 100%;
+  background: color-mix(in srgb, var(--ink) 12%, var(--paper));
+}
+
+.ranked-chart__bar {
+  height: 100%;
+  background: var(--ink);
+  transition: background 0.15s ease;
+}
+.ranked-chart__bar.is-top {
+  background: var(--accent);
+}
+.ranked-chart__row:hover .ranked-chart__bar {
+  background: color-mix(in srgb, var(--ink) 80%, var(--accent) 20%);
+}
+.ranked-chart__row:hover .ranked-chart__bar.is-top {
+  background: var(--accent);
+}
+
+/* -------------------------------------------------------------------- */
+/* Footer                                                                */
+/* -------------------------------------------------------------------- */
+
+.site-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 10px;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 26px 32px 40px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: var(--ink-soft);
+}
+.site-footer__sep {
+  color: var(--line);
+}
+.site-footer__note {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  text-align: center;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Variante sulla mappa: una riga discreta sopra la vignette in basso. */
+.site-footer--overlay {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 6;
+  width: max-content;
+  max-width: calc(100% - 120px);
+  margin: 0;
+  padding: 0;
+  border-top: none;
+  font-size: 12px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Pagine editoriali (Tipologie, Gin Tonic, Open data)                    */
+/* -------------------------------------------------------------------- */
+
+.article-page {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 36px 32px 70px;
+  font-size: 17.5px;
+  line-height: 1.6;
+}
+.article-page p {
+  margin: 0 0 16px;
+}
+.article-page code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.82em;
+  background: rgba(226, 214, 168, 0.5);
+  padding: 1px 5px;
+}
+
+.article-page__eyebrow {
+  font-size: 11.5px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: center;
+}
+.article-page .article-page__eyebrow {
+  margin-bottom: 8px;
+}
+.article-page__title {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  margin: 0 0 18px;
+}
+.article-page .article-page__lead {
+  font-size: 20px;
+  font-style: italic;
+  color: var(--ink-soft);
+  text-align: center;
+  margin-bottom: 40px;
+}
+.article-page__h2 {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 48px 0 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.article-list {
+  margin: 0;
+  padding-left: 22px;
+}
+.article-list li {
+  margin-bottom: 10px;
+}
+
+/* Tipologie */
+.style-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.style-card {
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  padding: 24px 28px 18px;
+}
+.style-card__name {
+  font-size: 25px;
+  font-weight: 600;
+  margin: 0;
+}
+.article-page .style-card__tagline {
+  font-style: italic;
+  color: var(--accent);
+  margin: 2px 0 12px;
+}
+.style-card__facts {
+  list-style: none;
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.style-card__facts li::before {
+  content: '◇ ';
+  color: var(--accent);
+}
+
+.method-list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+.method-list__item {
+  border-top: 1.5px solid var(--ink);
+  padding-top: 10px;
+}
+.method-list__item dt {
+  font-size: 19px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.method-list__item dd {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Gin Tonic */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 1.5px solid var(--ink);
+}
+.timeline__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  padding: 0 0 26px 26px;
+}
+.timeline__item::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 9px;
+  width: 9px;
+  height: 9px;
+  background: var(--paper);
+  border: 1.5px solid var(--accent);
+  transform: rotate(45deg);
+}
+.timeline__year {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1.5;
+}
+.timeline__title {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+.timeline__item p {
+  margin: 0;
+}
+
+.recipe {
+  border: 1.5px solid var(--ink);
+  padding: 22px 28px 8px;
+}
+.recipe__ingredients {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0 0 14px;
+  border-bottom: 1px dashed var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+}
+
+/* Open data */
+.opendata-download {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1.5px solid var(--ink);
+  padding: 20px 24px;
+}
+.opendata-download__file {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 17px;
+}
+.opendata-download__meta {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.opendata-download__button {
+  display: inline-block;
+  padding: 10px 20px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.opendata-download__button:hover {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.article-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.article-table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1.5px solid var(--ink);
+  padding: 8px 10px;
+}
+.article-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+.article-table__muted {
+  color: var(--ink-soft);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------- */
+/* Contribuisci (segnalazioni e proposte)                                 */
+/* -------------------------------------------------------------------- */
+
+.report-link {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.report-link:hover {
+  color: var(--accent);
+}
+
+.contribute-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.contribute-tabs__tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.contribute-tabs__tab:hover {
+  color: var(--ink);
+}
+.contribute-tabs__tab.is-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.contribute-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.form-field__label {
+  font-size: 11.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.form-field__hint {
+  font-size: 13.5px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.3px solid var(--ink);
+  border-radius: 0;
+  padding: 9px 12px;
+}
+.form-field textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.form-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.form-submit {
+  align-self: flex-start;
+  padding: 12px 24px;
+  border: none;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 12.5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.form-submit:hover:not(:disabled) {
+  background: var(--accent);
+}
+.form-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.article-page .form-status {
+  margin: 0;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.article-page .form-status--ok {
+  color: var(--ink);
+  border-left: 3px solid var(--ink);
+  padding-left: 12px;
+}
+.article-page .form-status--error {
+  color: var(--accent);
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Responsive: bottom sheet under ~640px                                 */
+/* -------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  :root {
+    --searchbar-height: 50px;
+  }
+
+  .site-header {
+    padding-top: 26px;
+  }
+  .site-header__logo {
+    font-size: 17px;
+    letter-spacing: 4px;
+  }
+  .site-header__tagline {
+    display: none;
+  }
+  .site-header__rule-line {
+    width: 30px;
+  }
+  .site-header__nav {
+    margin-top: 14px;
+    gap: 6px 8px;
+    padding: 6px 11px;
+  }
+  .site-header__nav-link {
+    font-size: 9.5px;
+    letter-spacing: 1.3px;
+  }
+
+  .globe-stage {
+    top: 150px;
+    bottom: 210px;
+  }
+  .globe-stage.has-panel {
+    transform: none;
+  }
+
+  .search-dock {
+    bottom: 176px;
+    width: calc(100% - 32px);
+  }
+
+  .search-bar {
+    padding: 0 16px;
+    gap: 10px;
+  }
+  .search-bar__label {
+    display: none;
+  }
+  .search-bar__divider {
+    display: none;
+  }
+
+  .detail-panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    max-height: 78vh;
+    border-right: none;
+    border-top: 1.3px solid var(--ink);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -10px 26px rgba(27, 43, 34, 0.14);
+    padding: 14px 22px 26px;
+    transform: translateY(100%);
+  }
+  .detail-panel.is-open {
+    transform: translateY(0);
+  }
+
+  .detail-panel__drag-handle {
+    width: 36px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    align-self: center;
+    margin-bottom: 12px;
+  }
+
+  .detail-panel__close {
+    top: 14px;
+    right: 16px;
+  }
+
+  .fact-grid {
+    margin-top: 18px;
+    padding-top: 16px;
+  }
+
+  .datagin-page {
+    padding: 12px 18px 60px;
+  }
+  .stat-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .stat-tile {
+    padding: 16px 14px;
+  }
+  .stat-tile__value {
+    font-size: 30px;
+  }
+  .ranked-chart {
+    padding: 18px 16px;
+  }
+
+  .datagin-filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px 16px;
+    gap: 16px;
+  }
+  .datagin-filters__field,
+  .datagin-filters__field--range {
+    min-width: 0;
+    width: 100%;
+  }
+  .datagin-filters__reset {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+
+  .datagin-table-wrap {
+    max-height: 400px;
+  }
+  .datagin-table {
+    font-size: 13px;
+  }
+  .datagin-table td,
+  .datagin-table th button {
+    padding: 8px 10px;
+  }
+
+  .site-footer {
+    padding: 22px 18px 32px;
+  }
+  .site-footer--overlay {
+    bottom: 14px;
+    max-width: calc(100% - 32px);
+    font-size: 11px;
+  }
+
+  .article-page {
+    padding: 22px 18px 50px;
+    font-size: 16.5px;
+  }
+  .article-page__title {
+    font-size: 30px;
+  }
+  .article-page .article-page__lead {
+    font-size: 18px;
+  }
+  .article-page__h2 {
+    font-size: 22px;
+  }
+  .style-card,
+  .recipe {
+    padding: 18px 18px 12px;
+  }
+  .timeline__item {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding-left: 20px;
+  }
+}
